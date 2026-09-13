@@ -1,0 +1,9 @@
+/.bundle/
+/log/
+/tmp/
+*.gem
+/vendor/bundle/
+/pkg/
+.DS_Store
+Thumbs.db
+*.swp

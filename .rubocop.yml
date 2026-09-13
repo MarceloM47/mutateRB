@@ -1,0 +1,40 @@
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.0
+  SuggestExtensions: false
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*.rb"
+    - "mutaterb.gemspec"
+
+# Defaults are tuned for average Rails app code; MutateRB's core classes are
+# small, cohesive, and already split by responsibility (Principio IV: flat
+# structure) — a slightly higher ceiling avoids fragmenting single-purpose
+# methods just to satisfy an arbitrary line count.
+Metrics/MethodLength:
+  Max: 30
+
+Metrics/ClassLength:
+  Max: 120
+
+Metrics/AbcSize:
+  Max: 40
+
+Metrics/CyclomaticComplexity:
+  Max: 12
+
+Metrics/ParameterLists:
+  Max: 8
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
+Gemspec/DevelopmentDependencies:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
