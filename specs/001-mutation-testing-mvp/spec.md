@@ -13,6 +13,21 @@ test mutado no falla, el test original queda marcado como débil), soporta un ar
 configuración para fijar carpeta objetivo y configuraciones generales, y expone flags CLI para
 nivel de estricticidad, carpetas a incluir/excluir y tipos de mutación a aplicar."
 
+## Clarifications
+
+### Session 2026-09-13
+
+- Q: ¿Qué código de salida (exit code) debe devolver la CLI cuando la corrida termina
+  correctamente pero encontró mutaciones "survived" (tests débiles)? → A: Por defecto, exit
+  code ≠ 0 si queda al menos una mutación "survived" (0 solo si todas fueron "killed"); este
+  comportamiento es configurable vía flag de CLI y archivo de configuración.
+- Q: ¿Cuánto tiempo debe esperar la herramienta antes de declarar "timeout" a un test que
+  quedó colgado tras una mutación? → A: El doble del tiempo que ese mismo test tardó en la
+  corrida base (sin mutar), con un piso mínimo de 5 segundos.
+- Q: ¿El export de resultados a un archivo de texto/JSON plano es un requisito real del MVP,
+  o solo una posibilidad futura? → A: Sí es un requisito del MVP: la CLI debe poder exportar
+  los resultados a un archivo JSON plano además de mostrarlos en consola, vía flag.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Correr mutation testing sin configuración previa (Priority: P1)
@@ -66,6 +81,9 @@ distingue a ambos correctamente.
 3. **Given** una corrida completa, **When** finaliza, **Then** el usuario recibe un resumen con
    el total de mutaciones generadas, cuántas fueron "killed" y cuántas "survived", junto al
    archivo/línea/test asociado a cada mutación sobrevivida.
+4. **Given** el usuario pasó el flag de export, **When** la corrida finaliza, **Then** el
+   mismo resumen de resultados queda disponible en un archivo JSON plano, además de mostrarse
+   en consola.
 
 ---
 
@@ -93,6 +111,10 @@ verificando que la segunda corrida solo mutó lo indicado.
 4. **Given** flags de CLI y archivo de configuración con valores distintos para la misma
    opción, **When** se ejecuta la CLI, **Then** el flag de CLI tiene prioridad sobre el archivo
    de configuración.
+5. **Given** una corrida que finaliza con al menos una mutación "survived", **When** no se usó
+   ningún flag ni configuración relacionados al código de salida, **Then** el proceso termina
+   con un exit code distinto de cero; **Given** el usuario fijó explícitamente lo contrario vía
+   flag o archivo de configuración, **Then** el exit code respeta esa configuración.
 
 ---
 
@@ -105,8 +127,9 @@ verificando que la segunda corrida solo mutó lo indicado.
   mutación se descarta como inválida (se reporta como "error", no como "survived") y la corrida
   continúa con el resto.
 - ¿Qué pasa si un test queda colgado (loop infinito) tras una mutación? Debe aplicarse un
-  timeout por test/mutación; al vencerse, la mutación se marca como "killed by timeout" y la
-  corrida continúa.
+  timeout por test/mutación —el doble del tiempo que ese test tardó en la corrida base sin
+  mutar, con un piso mínimo de 5 segundos—; al vencerse, la mutación se marca como "killed by
+  timeout" y la corrida continúa.
 - ¿Qué pasa si el proceso se interrumpe (Ctrl+C) a mitad de la corrida? El código fuente
   mutado en ese momento debe restaurarse a su estado original antes de salir.
 - ¿Qué pasa si el archivo de configuración es inválido o tiene tipos de dato incorrectos? La
@@ -145,6 +168,14 @@ verificando que la segunda corrida solo mutó lo indicado.
 - **FR-012**: El sistema DEBE identificar y reportar por separado los tests que ya fallaban
   antes de aplicar cualquier mutación, para no contarlos como evidencia de fortaleza o
   debilidad.
+- **FR-013**: El sistema DEBE finalizar con un exit code distinto de cero cuando la corrida
+  detecta al menos una mutación "survived", salvo que el usuario configure explícitamente lo
+  contrario vía flag de CLI o archivo de configuración.
+- **FR-014**: El sistema DEBE medir, en una corrida base sin mutaciones, el tiempo de
+  ejecución de cada test, y usar el doble de ese tiempo (con un piso mínimo de 5 segundos)
+  como timeout al ejecutar ese test contra una mutación.
+- **FR-015**: El sistema DEBE poder exportar el resumen de resultados de una corrida a un
+  archivo JSON plano (además de mostrarlo en consola), activable vía flag de CLI.
 
 ### Key Entities
 
@@ -156,8 +187,8 @@ verificando que la segunda corrida solo mutó lo indicado.
 - **TestSuite**: la colección de archivos de test detectados para el proyecto objetivo,
   asociada al framework identificado (RSpec) y al tipo de proyecto (Ruby puro / Rails).
 - **Config**: el conjunto de opciones resueltas para una corrida (carpeta objetivo,
-  estricticidad, tipos de mutación, exclusiones), combinando archivo de configuración y flags
-  de CLI.
+  estricticidad, tipos de mutación, exclusiones, política de exit code), combinando archivo de
+  configuración y flags de CLI.
 
 ## Success Criteria *(mandatory)*
 
@@ -188,7 +219,7 @@ verificando que la segunda corrida solo mutó lo indicado.
   Actions, GitLab CI, etc. La CLI puede invocarse desde cualquier script, pero eso es
   responsabilidad del usuario, no un entregable de esta iteración.
 - **Reportes visuales**: no se genera reporte HTML, dashboard ni gráficos; el MVP entrega
-  salida por consola (y opcionalmente un archivo de texto/JSON plano).
+  salida por consola y, opcionalmente vía flag, un archivo JSON plano (ver FR-015).
 - **Ejecución distribuida o en paralelo**: no se implementa paralelización de mutaciones ni
   ejecución multi-máquina en esta iteración; la corrida es secuencial.
 - **Mutación de dependencias externas**: solo se muta el código propio del proyecto objetivo,
