@@ -64,4 +64,27 @@ RSpec.describe MutateRB::Config do
   it "rejects nonexistent target_dir" do
     expect { described_class.new(target_dir: "/no/existe/seguro") }.to raise_error(MutateRB::ConfigError, /target_dir/)
   end
+
+  it "defaults test_framework to :auto" do
+    config = described_class.load_file(File.join(dir, "nope.yml"))
+
+    expect(config.test_framework).to eq(:auto)
+  end
+
+  it "rejects test_framework outside {auto, rspec, minitest}" do
+    path = File.join(dir, ".mutaterb.yml")
+    File.write(path, "test_framework: junit\n")
+
+    expect { described_class.load_file(path) }.to raise_error(MutateRB::ConfigError, /test_framework/)
+  end
+
+  it "a --framework flag takes precedence over the config file value (FR-003)" do
+    path = File.join(dir, ".mutaterb.yml")
+    File.write(path, "test_framework: rspec\n")
+    config = described_class.load_file(path)
+
+    merged = config.merge_flags(test_framework: :minitest)
+
+    expect(merged.test_framework).to eq(:minitest)
+  end
 end
