@@ -3,6 +3,7 @@
 require "spec_helper"
 require "tmpdir"
 require "fileutils"
+require "bundler"
 
 RSpec.describe MutateRB::TestRunner do
   before(:all) do
@@ -15,7 +16,12 @@ RSpec.describe MutateRB::TestRunner do
       RSpec.describe("ok") { it("passes") { expect(1).to eq(1) } }
     RUBY
     File.write(File.join(@dir, "Gemfile"), "source 'https://rubygems.org'\ngem 'rspec'\n")
-    Dir.chdir(@dir) { system("bundle install --quiet", out: File::NULL, err: File::NULL) }
+    # Isolate this nested `bundle install` from the outer process's own
+    # Bundler env (same issue as research.md #2 in feature 001's TestRunner,
+    # here in the spec's own fixture setup — see feature 003).
+    Bundler.with_unbundled_env do
+      Dir.chdir(@dir) { system("bundle install --quiet", out: File::NULL, err: File::NULL) }
+    end
   end
 
   after(:all) { FileUtils.remove_entry(@dir) }
