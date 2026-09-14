@@ -2,6 +2,7 @@
 
 require "json"
 require "timeout"
+require "bundler"
 
 module MutateRB
   # Runs the target project's own RSpec suite as a subprocess (research.md #2):
@@ -41,11 +42,19 @@ module MutateRB
 
     attr_reader :config, :project_type
 
+    # Runs inside Bundler.with_unbundled_env (research.md #2): when `mutaterb`
+    # itself is invoked via `bundle exec`, BUNDLE_GEMFILE/RUBYOPT point at
+    # MutateRB's own Gemfile and would otherwise leak into this child process,
+    # making `bundle exec rspec` resolve the target project's suite against
+    # the wrong bundle. with_unbundled_env restores the pre-bundler
+    # environment for the duration of the spawn.
     def spawn_rspec(files, timeout_seconds:)
       env = project_type == :rails ? { "RAILS_ENV" => "test" } : {}
       stdout_read, stdout_write = IO.pipe
-      pid = Process.spawn(env, *rspec_command(files), out: stdout_write, err: File::NULL,
-                                                      chdir: File.expand_path(config.target_dir))
+      pid = Bundler.with_unbundled_env do
+        Process.spawn(env, *rspec_command(files), out: stdout_write, err: File::NULL,
+                                                  chdir: File.expand_path(config.target_dir))
+      end
       stdout_write.close
 
       output = wait_with_timeout(pid, stdout_read, timeout_seconds)
