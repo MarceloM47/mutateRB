@@ -70,4 +70,21 @@ RSpec.describe MutateRB::Mutator do
       expect(mutant.kill_reason).to eq(:timeout)
     end
   end
+
+  it "con estricticidad default, un resultado inconcluso se reporta como error" do
+    fake_runner = instance_double(MutateRB::TestRunner)
+    allow(fake_runner).to receive(:run_for_mutant).and_return(status: :error, examples: [])
+
+    mutator = described_class.new(config: config, test_suite: test_suite, test_runner: fake_runner)
+    mutator.each_mutant { |mutant| expect(mutant.status).to eq(:error) }
+  end
+
+  it "con estricticidad high, un resultado inconcluso cuenta como survived (US3/AC2)" do
+    high_config = MutateRB::Config.new(target_dir: @dir, strictness: :high)
+    fake_runner = instance_double(MutateRB::TestRunner)
+    allow(fake_runner).to receive(:run_for_mutant).and_return(status: :error, examples: [])
+
+    mutator = described_class.new(config: high_config, test_suite: test_suite, test_runner: fake_runner)
+    mutator.each_mutant { |mutant| expect(mutant.status).to eq(:survived) }
+  end
 end

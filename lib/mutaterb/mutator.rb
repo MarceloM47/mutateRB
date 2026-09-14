@@ -89,7 +89,7 @@ module MutateRB
       return unless mutant.status == :pending # apply_patch already marked :error
 
       if related_tests.empty?
-        mutant.finish!(status: :error, error_message: "sin tests relacionados")
+        finish_inconclusive(mutant, "sin tests relacionados")
         return
       end
 
@@ -98,9 +98,22 @@ module MutateRB
       when :timeout
         mutant.finish!(status: :killed, kill_reason: :timeout)
       when :error
-        mutant.finish!(status: :error, error_message: "fallo al ejecutar los tests")
+        finish_inconclusive(mutant, "fallo al ejecutar los tests")
       else
         classify_from_examples(mutant, related_tests, result[:examples])
+      end
+    end
+
+    # Un resultado inconcluso (sin tests que ejercitaran la mutación, o la
+    # ejecución de tests falló) no prueba que la mutación se detecte. Con
+    # estricticidad "high" eso cuenta como evidencia de debilidad
+    # ("survived"); en los demás niveles se reporta aparte como "error" sin
+    # afectar el conteo de killed/survived (US3/AC2, FR-008).
+    def finish_inconclusive(mutant, message)
+      if config.strictness == :high
+        mutant.finish!(status: :survived)
+      else
+        mutant.finish!(status: :error, error_message: message)
       end
     end
 
