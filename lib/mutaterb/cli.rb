@@ -17,6 +17,13 @@ module MutateRB
     rescue ConfigError => e
       warn "mutaterb: #{e.message}"
       EXIT_OPERATIONAL_ERROR
+    rescue StandardError => e
+      # Constitution Principio V: ningún error puede salir sin capturar.
+      # Cualquier fallo no previsto (detección de proyecto, corrida base,
+      # etc.) se reporta de forma controlada en vez de propagar un backtrace
+      # crudo (contracts/cli.md: exit 2 = error operativo, SC-005).
+      warn "mutaterb: error inesperado: #{e.message}"
+      EXIT_OPERATIONAL_ERROR
     end
 
     private

@@ -29,3 +29,13 @@ RSpec.describe MutateRB::FlagParser do
     expect { described_class.parse(["--no-existe"]) }.to raise_error(MutateRB::ConfigError)
   end
 end
+
+RSpec.describe MutateRB::CLI do
+  it "captura cualquier error inesperado y devuelve el exit code de error operativo" do
+    allow(MutateRB::ProjectDetector).to receive(:new).and_raise(StandardError, "boom inesperado")
+
+    exit_code = nil
+    expect { exit_code = described_class.new.run([]) }.not_to raise_error
+    expect(exit_code).to eq(MutateRB::CLI::EXIT_OPERATIONAL_ERROR)
+  end
+end
