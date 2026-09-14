@@ -319,3 +319,44 @@ la gema antes de seguir con la siguiente.
 - [X] T043 Implementar el efecto real de `strictness` (`low`/`default`/`high`) sobre
       `mutation_types` y/o el criterio de clasificación en `lib/mutaterb/mutator.rb`, para
       satisfacer el Acceptance Scenario 2 de User Story 3 (FR-008, US3/AC2) (partial)
+
+---
+
+## Phase 8: Release Readiness (RubyGems)
+
+**Purpose**: dejar la gema lista para publicarse en RubyGems.org, agregado vía
+`/speckit-clarify` + `/speckit-plan` después del MVP original (FR-016 a FR-019, SC-006).
+Es un incremento independiente y verificable por su cuenta (Escenario 5 de quickstart.md), no
+depende de ninguna user story de mutación en sí — solo de que la gema ya exista como tal.
+
+**Independent Test**: `gem build mutaterb.gemspec && gem install ./mutaterb-*.gem` sin
+warnings de metadata, más `rake spec` y `rubocop` en verde (Escenario 5 de quickstart.md).
+
+- [X] T044 [P] Crear `README.md` en la raíz: título + descripción de una línea, instalación
+      (`gem install mutaterb`), uso básico (comando por defecto y los flags principales de
+      `contracts/cli.md`), y licencia (FR-016, research.md #11)
+- [X] T045 [P] Crear `LICENSE.txt` en la raíz con el texto estándar de licencia MIT y
+      "MarceloM47" como titular del copyright (FR-017, research.md #12)
+- [X] T046 Actualizar `mutaterb.gemspec`: `spec.authors = ["MarceloM47"]`,
+      `spec.email = ["marcelo.esteche@proton.me"]`, `spec.homepage =
+      "https://github.com/MarceloM47/mutateRB"`, `spec.metadata["homepage_uri"]` y
+      `spec.metadata["source_code_uri"]` apuntando a ese homepage, y agregar
+      `spec.add_development_dependency "rake", "~> 13"` (FR-017, FR-018)
+- [X] T047 [P] Crear `Rakefile` en la raíz: `require "bundler/gem_tasks"`,
+      `require "rspec/core/rake_task"`, `RSpec::Core::RakeTask.new(:spec)`,
+      `task default: :spec` (FR-018, research.md #10)
+- [X] T048 [P] Crear `.github/workflows/ci.yml`: matriz de Ruby (3.0 a la última estable),
+      job que corre `bundle exec rake spec`, job separado que corre `bundle exec rubocop`, en
+      cada push a `main` y en cada pull request (FR-018)
+- [X] T049 Crear `.github/workflows/release.yml`: trigger en push de tags `v*`, permisos
+      `contents: write` + `id-token: write`, pasos `ruby/setup-ruby` +
+      `rubygems/release-gem@v1` (autenticación por trusted publisher/OIDC, sin
+      `RUBYGEMS_API_KEY`) (FR-019, research.md #9) — depende de T046 (la metadata del gemspec
+      debe ser correcta antes de publicar con ella)
+- [X] T050 Ejecutar el Escenario 5 de `quickstart.md` (`gem build`, `gem install` local,
+      `mutaterb --help`, `rake spec`, `rubocop`) y confirmar que no hay warnings de metadata
+      del gemspec — depende de T044-T049
+
+**Checkpoint**: `gem build` no advierte nada, el gem se instala y funciona localmente, y CI
+correría en verde si se pushea (release.yml solo se valida por inspección, no requiere
+pushear un tag real para este checkpoint).
