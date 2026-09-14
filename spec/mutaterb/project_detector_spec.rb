@@ -17,7 +17,7 @@ RSpec.describe MutateRB::ProjectDetector do
     end
   end
 
-  it "detecta un proyecto Ruby puro" do
+  it "detects a pure Ruby project" do
     make_project do |dir|
       config = MutateRB::Config.new(target_dir: dir)
       detection = described_class.new(config).detect
@@ -25,7 +25,7 @@ RSpec.describe MutateRB::ProjectDetector do
     end
   end
 
-  it "detecta un proyecto Rails por config/application.rb" do
+  it "detects a Rails project via config/application.rb" do
     make_project(rails: true) do |dir|
       config = MutateRB::Config.new(target_dir: dir)
       detection = described_class.new(config).detect
@@ -33,7 +33,7 @@ RSpec.describe MutateRB::ProjectDetector do
     end
   end
 
-  it "encuentra los archivos *_spec.rb bajo spec/" do
+  it "finds *_spec.rb files under spec/" do
     make_project do |dir|
       config = MutateRB::Config.new(target_dir: dir)
       detection = described_class.new(config).detect
@@ -41,7 +41,7 @@ RSpec.describe MutateRB::ProjectDetector do
     end
   end
 
-  it "no encuentra tests en un directorio vacío" do
+  it "finds no tests in an empty directory" do
     Dir.mktmpdir do |dir|
       config = MutateRB::Config.new(target_dir: dir)
       detection = described_class.new(config).detect

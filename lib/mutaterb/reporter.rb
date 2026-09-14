@@ -22,8 +22,8 @@ module MutateRB
 
     def print_console
       summary = run.summary
-      puts "MutateRB — #{summary[:total_mutants]} mutaciones: " \
-           "#{summary[:killed]} killed, #{summary[:survived]} survived, #{summary[:errors]} errores"
+      puts "MutateRB — #{summary[:total_mutants]} mutations: " \
+           "#{summary[:killed]} killed, #{summary[:survived]} survived, #{summary[:errors]} errors"
       print_baseline_broken
       print_survived
     end
@@ -32,7 +32,7 @@ module MutateRB
       broken = run.baseline_broken_tests
       return if broken.empty?
 
-      puts "Tests ya rotos antes de mutar (excluidos del conteo): #{broken.size}"
+      puts "Pre-broken tests before mutation (excluded from count): #{broken.size}"
       broken.each { |t| puts "  - #{t.id} #{t.description}" }
     end
 
@@ -40,7 +40,7 @@ module MutateRB
       survived = run.survived_mutants
       return if survived.empty?
 
-      puts "\nMutaciones survived (tests débiles):"
+      puts "\nSurvived mutations (weak tests):"
       survived.each do |mutant|
         related = mutant.related_tests.map(&:id).join(", ")
         puts "  - #{mutant.file_path}:#{mutant.line} [#{mutant.operator_type}] " \

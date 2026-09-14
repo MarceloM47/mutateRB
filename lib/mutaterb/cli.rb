@@ -18,11 +18,11 @@ module MutateRB
       warn "mutaterb: #{e.message}"
       EXIT_OPERATIONAL_ERROR
     rescue StandardError => e
-      # Constitution Principio V: ningún error puede salir sin capturar.
-      # Cualquier fallo no previsto (detección de proyecto, corrida base,
-      # etc.) se reporta de forma controlada en vez de propagar un backtrace
-      # crudo (contracts/cli.md: exit 2 = error operativo, SC-005).
-      warn "mutaterb: error inesperado: #{e.message}"
+      # Constitution Principle V: no error may go uncaught.
+      # Any unforeseen failure (project detection, baseline run, etc.) is
+      # reported in a controlled manner instead of propagating a raw backtrace
+      # (contracts/cli.md: exit 2 = operational error, SC-005).
+      warn "mutaterb: unexpected error: #{e.message}"
       EXIT_OPERATIONAL_ERROR
     end
 
@@ -40,7 +40,7 @@ module MutateRB
 
       detection = ProjectDetector.new(config).detect
       if detection.spec_files.empty?
-        warn "mutaterb: no se encontraron tests en #{config.target_dir}"
+        warn "mutaterb: no tests found in #{config.target_dir}"
         return EXIT_OPERATIONAL_ERROR
       end
 

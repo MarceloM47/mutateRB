@@ -6,7 +6,7 @@ require "securerandom"
 
 RSpec.describe MutateRB::MutationRun do
   let(:config) { MutateRB::Config.new(target_dir: Dir.mktmpdir) }
-  let(:broken_test) { MutateRB::TestCase.new(id: "b1", description: "roto", file_path: "spec/b_spec.rb", baseline_status: :failed, baseline_duration_seconds: 0.1) }
+  let(:broken_test) { MutateRB::TestCase.new(id: "b1", description: "broken", file_path: "spec/b_spec.rb", baseline_status: :failed, baseline_duration_seconds: 0.1) }
   let(:ok_test) { MutateRB::TestCase.new(id: "t1", description: "ok", file_path: "spec/a_spec.rb", baseline_status: :passed, baseline_duration_seconds: 0.1) }
   let(:test_suite) { MutateRB::TestSuite.new(project_type: :ruby, test_cases: [broken_test, ok_test]) }
   let(:run) { described_class.new(config: config, test_suite: test_suite) }
@@ -18,11 +18,11 @@ RSpec.describe MutateRB::MutationRun do
     mutant
   end
 
-  it "excluye los tests base rotos del resumen y los expone aparte" do
+  it "excludes baseline broken tests from the summary and exposes them separately" do
     expect(run.baseline_broken_tests).to eq([broken_test])
   end
 
-  it "calcula el resumen de killed/survived/errors" do
+  it "calculates the killed/survived/errors summary" do
     run.add_mutant(make_mutant(status: :killed, kill_reason: :assertion_failure))
     run.add_mutant(make_mutant(status: :survived))
     run.add_mutant(make_mutant(status: :error))
@@ -30,7 +30,7 @@ RSpec.describe MutateRB::MutationRun do
     expect(run.summary).to include(total_mutants: 3, killed: 1, survived: 1, errors: 1)
   end
 
-  it "survived? es true si hay al menos un mutante survived" do
+  it "survived? is true when there is at least one survived mutant" do
     run.add_mutant(make_mutant(status: :killed, kill_reason: :timeout))
     expect(run.survived?).to be false
 
@@ -38,7 +38,7 @@ RSpec.describe MutateRB::MutationRun do
     expect(run.survived?).to be true
   end
 
-  it "exit_code es 1 por defecto si hay survived, 0 si exit_on_survivors es false" do
+  it "exit_code defaults to 1 if survived, 0 when exit_on_survivors is false" do
     run.add_mutant(make_mutant(status: :survived))
     expect(run.exit_code).to eq(1)
 

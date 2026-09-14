@@ -27,27 +27,27 @@ module MutateRB
       OptionParser.new do |opts|
         opts.banner = "Usage: mutaterb [flags]"
 
-        opts.on("--dir PATH", "Carpeta objetivo a analizar") { |v| flags[:target_dir] = v }
-        opts.on("--include PATHS", "Subcarpetas/archivos a incluir, separados por coma") do |v|
+        opts.on("--dir PATH", "Target folder to analyze") { |v| flags[:target_dir] = v }
+        opts.on("--include PATHS", "Subdirectories/files to include, comma-separated") do |v|
           flags[:include_paths] = v.split(",")
         end
-        opts.on("--exclude PATHS", "Subcarpetas/archivos a excluir, separados por coma") do |v|
+        opts.on("--exclude PATHS", "Subdirectories/files to exclude, comma-separated") do |v|
           flags[:exclude_paths] = v.split(",")
         end
         opts.on("--strictness LEVEL", "low|default|high") { |v| flags[:strictness] = v.to_sym }
-        opts.on("--mutation-types TYPES", "Tipos de mutación, separados por coma") do |v|
+        opts.on("--mutation-types TYPES", "Mutation types to apply, comma-separated") do |v|
           flags[:mutation_types] = v.split(",").map(&:to_sym)
         end
-        opts.on("--exit-zero", "No fallar aunque haya mutaciones survived") do
+        opts.on("--exit-zero", "Do not fail even if survived mutations exist") do
           flags[:exit_on_survivors] = false
         end
-        opts.on("--json-output PATH", "Exporta el resumen a un archivo JSON") do |v|
+        opts.on("--json-output PATH", "Export summary to a JSON file") do |v|
           flags[:json_output_path] = v
         end
-        opts.on("--config PATH", "Usa un archivo de config distinto de .mutaterb.yml") do |v|
+        opts.on("--config PATH", "Use a config file other than .mutaterb.yml") do |v|
           flags[:config_path] = v
         end
-        opts.on("-h", "--help", "Muestra esta ayuda") do
+        opts.on("-h", "--help", "Show this help") do
           puts opts
           exit 0
         end

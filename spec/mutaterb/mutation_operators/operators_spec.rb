@@ -11,7 +11,7 @@ RSpec.describe "MutateRB::MutationOperators" do
     path
   end
 
-  it "ConditionalBoundaryOperator swaps > por >=" do
+  it "ConditionalBoundaryOperator swaps > to >=" do
     path = write_source("def adult?(age)\n  age > 18\nend\n")
     mutants = MutateRB::MutationOperators::ConditionalBoundaryOperator.candidates(path)
 
@@ -25,24 +25,25 @@ RSpec.describe "MutateRB::MutationOperators" do
     expect(mutants.map(&:mutated_fragment)).to eq(["false"])
   end
 
-  it "NilLiteralOperator reemplaza nil por false" do
-    # ponytail: un `nil` como única expresión final de un método no genera
-    # nodo NIL en RubyVM::AbstractSyntaxTree (Ruby lo optimiza a un retorno
-    # implícito) — se prueba con `nil` en posición no final, el caso común.
+  it "NilLiteralOperator replaces nil with false" do
+    # ponytail: a `nil` as the only final expression of a method does not
+    # generate a NIL node in RubyVM::AbstractSyntaxTree (Ruby optimizes it
+    # to an implicit return) — tested with `nil` in a non-final position,
+    # the common case.
     path = write_source("def value\n  x = nil\n  x\nend\n")
     mutants = MutateRB::MutationOperators::NilLiteralOperator.candidates(path)
 
     expect(mutants.map(&:mutated_fragment)).to eq(["false"])
   end
 
-  it "ArithmeticComparisonOperator swaps + por -" do
+  it "ArithmeticComparisonOperator swaps + to -" do
     path = write_source("def add(a, b)\n  a + b\nend\n")
     mutants = MutateRB::MutationOperators::ArithmeticComparisonOperator.candidates(path)
 
     expect(mutants.map(&:mutated_fragment)).to include("a - b")
   end
 
-  it "produce mutantes que siguen siendo Ruby válido" do
+  it "produces mutants that remain valid Ruby" do
     path = write_source("def adult?(age)\n  age >= 18\nend\n")
     mutants = MutateRB::MutationOperators::ConditionalBoundaryOperator.candidates(path)
 

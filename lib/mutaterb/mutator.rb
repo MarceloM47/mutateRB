@@ -52,7 +52,7 @@ module MutateRB
       begin
         original_content = File.read(mutant.file_path)
       rescue StandardError => e
-        mutant.finish!(status: :error, error_message: "no se pudo leer #{mutant.file_path}: #{e.message}")
+        mutant.finish!(status: :error, error_message: "could not read #{mutant.file_path}: #{e.message}")
         return mutant
       end
 
@@ -78,7 +78,7 @@ module MutateRB
       begin
         RubyVM::AbstractSyntaxTree.parse(patched)
       rescue SyntaxError => e
-        mutant.finish!(status: :error, error_message: "mutación produjo código inválido: #{e.message}")
+        mutant.finish!(status: :error, error_message: "mutation produced invalid code: #{e.message}")
         return
       end
 
@@ -89,7 +89,7 @@ module MutateRB
       return unless mutant.status == :pending # apply_patch already marked :error
 
       if related_tests.empty?
-        finish_inconclusive(mutant, "sin tests relacionados")
+        finish_inconclusive(mutant, "no related tests")
         return
       end
 
@@ -98,17 +98,17 @@ module MutateRB
       when :timeout
         mutant.finish!(status: :killed, kill_reason: :timeout)
       when :error
-        finish_inconclusive(mutant, "fallo al ejecutar los tests")
+        finish_inconclusive(mutant, "failed to run tests")
       else
         classify_from_examples(mutant, related_tests, result[:examples])
       end
     end
 
-    # Un resultado inconcluso (sin tests que ejercitaran la mutación, o la
-    # ejecución de tests falló) no prueba que la mutación se detecte. Con
-    # estricticidad "high" eso cuenta como evidencia de debilidad
-    # ("survived"); en los demás niveles se reporta aparte como "error" sin
-    # afectar el conteo de killed/survived (US3/AC2, FR-008).
+    # An inconclusive result (no tests exercised the mutation, or test
+    # execution failed) does not prove the mutation is detected. With
+    # strictness "high" this counts as evidence of weakness ("survived");
+    # at other levels it is reported separately as "error" without
+    # affecting the killed/survived count (US3/AC2, FR-008).
     def finish_inconclusive(mutant, message)
       if config.strictness == :high
         mutant.finish!(status: :survived)

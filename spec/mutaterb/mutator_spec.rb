@@ -24,7 +24,7 @@ RSpec.describe MutateRB::Mutator do
     File.read(@source_path)
   end
 
-  it "restaura el archivo original después de una mutación survived" do
+  it "restores the original file after a survived mutation" do
     fake_runner = instance_double(MutateRB::TestRunner)
     allow(fake_runner).to receive(:run_for_mutant).and_return(status: :completed,
                                                               examples: [{
@@ -38,7 +38,7 @@ RSpec.describe MutateRB::Mutator do
     expect(original_content).to eq(before)
   end
 
-  it "restaura el archivo original cuando el test runner lanza una excepción inesperada" do
+  it "restores the original file when the test runner raises an unexpected exception" do
     fake_runner = instance_double(MutateRB::TestRunner)
     allow(fake_runner).to receive(:run_for_mutant).and_raise(StandardError, "boom")
     before = original_content
@@ -49,7 +49,7 @@ RSpec.describe MutateRB::Mutator do
     expect(original_content).to eq(before)
   end
 
-  it "marca la mutación como killed cuando el test relacionado falla" do
+  it "marks the mutation as killed when the related test fails" do
     fake_runner = instance_double(MutateRB::TestRunner)
     allow(fake_runner).to receive(:run_for_mutant).and_return(status: :completed,
                                                               examples: [{
@@ -60,7 +60,7 @@ RSpec.describe MutateRB::Mutator do
     mutator.each_mutant { |mutant| expect(mutant.status).to eq(:killed) }
   end
 
-  it "marca la mutación como killed by timeout cuando el test runner reporta timeout" do
+  it "marks the mutation as killed by timeout when the test runner reports timeout" do
     fake_runner = instance_double(MutateRB::TestRunner)
     allow(fake_runner).to receive(:run_for_mutant).and_return(status: :timeout, examples: [])
 
@@ -71,7 +71,7 @@ RSpec.describe MutateRB::Mutator do
     end
   end
 
-  it "con estricticidad default, un resultado inconcluso se reporta como error" do
+  it "with default strictness, an inconclusive result is reported as error" do
     fake_runner = instance_double(MutateRB::TestRunner)
     allow(fake_runner).to receive(:run_for_mutant).and_return(status: :error, examples: [])
 
@@ -79,7 +79,7 @@ RSpec.describe MutateRB::Mutator do
     mutator.each_mutant { |mutant| expect(mutant.status).to eq(:error) }
   end
 
-  it "con estricticidad high, un resultado inconcluso cuenta como survived (US3/AC2)" do
+  it "with high strictness, an inconclusive result counts as survived (US3/AC2)" do
     high_config = MutateRB::Config.new(target_dir: @dir, strictness: :high)
     fake_runner = instance_double(MutateRB::TestRunner)
     allow(fake_runner).to receive(:run_for_mutant).and_return(status: :error, examples: [])

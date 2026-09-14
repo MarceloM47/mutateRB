@@ -7,7 +7,7 @@ require "securerandom"
 
 RSpec.describe MutateRB::Reporter do
   let(:target_dir) { Dir.mktmpdir }
-  let(:test_case) { MutateRB::TestCase.new(id: "t1", description: "es mayor de edad", file_path: "spec/a_spec.rb", baseline_status: :passed, baseline_duration_seconds: 0.1) }
+  let(:test_case) { MutateRB::TestCase.new(id: "t1", description: "is of legal age", file_path: "spec/a_spec.rb", baseline_status: :passed, baseline_duration_seconds: 0.1) }
   let(:test_suite) { MutateRB::TestSuite.new(project_type: :ruby, test_cases: [test_case]) }
   let(:config) { MutateRB::Config.new(target_dir: target_dir, json_output_path: File.join(target_dir, "report.json")) }
   let(:run) { MutateRB::MutationRun.new(config: config, test_suite: test_suite) }
@@ -25,11 +25,11 @@ RSpec.describe MutateRB::Reporter do
     run.finished_at = Time.now
   end
 
-  it "imprime en consola el resumen y el detalle de las mutaciones survived" do
-    expect { described_class.new(run).report }.to output(/1 mutaciones.*1 survived/m).to_stdout
+  it "prints the summary and survived mutation details to the console" do
+    expect { described_class.new(run).report }.to output(/1 mutations.*1 survived/m).to_stdout
   end
 
-  it "exporta un JSON que cumple contracts/json-report-schema.md" do
+  it "exports a JSON matching contracts/json-report-schema.md" do
     allow($stdout).to receive(:puts)
     described_class.new(run).report
 

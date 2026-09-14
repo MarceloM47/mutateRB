@@ -6,7 +6,7 @@ require "tmpdir"
 RSpec.describe MutateRB::Config do
   let(:dir) { Dir.mktmpdir }
 
-  it "usa los defaults de data-model.md cuando no hay archivo de config" do
+  it "uses the data-model.md defaults when no config file exists" do
     config = described_class.load_file(File.join(dir, "nope.yml"))
 
     expect(config.target_dir).to eq(".")
@@ -16,7 +16,7 @@ RSpec.describe MutateRB::Config do
     expect(config.json_output_path).to be_nil
   end
 
-  it "carga y valida .mutaterb.yml" do
+  it "loads and validates .mutaterb.yml" do
     path = File.join(dir, ".mutaterb.yml")
     File.write(path, <<~YAML)
       strictness: high
@@ -30,28 +30,28 @@ RSpec.describe MutateRB::Config do
     expect(config.mutation_types).to eq([:boolean_literal])
   end
 
-  it "rechaza un strictness fuera de {low, default, high}" do
+  it "rejects strictness outside {low, default, high}" do
     path = File.join(dir, ".mutaterb.yml")
     File.write(path, "strictness: ultra\n")
 
     expect { described_class.load_file(path) }.to raise_error(MutateRB::ConfigError, /strictness/)
   end
 
-  it "rechaza mutation_types con un operador no registrado" do
+  it "rejects mutation_types with an unregistered operator" do
     path = File.join(dir, ".mutaterb.yml")
     File.write(path, "mutation_types:\n  - not_a_real_operator\n")
 
     expect { described_class.load_file(path) }.to raise_error(MutateRB::ConfigError, /unknown mutation_types/)
   end
 
-  it "rechaza un archivo que no es un mapping YAML" do
+  it "rejects a file that is not a YAML mapping" do
     path = File.join(dir, ".mutaterb.yml")
     File.write(path, "- a\n- b\n")
 
     expect { described_class.load_file(path) }.to raise_error(MutateRB::ConfigError, /mapping/)
   end
 
-  it "un flag de CLI tiene prioridad sobre el valor del archivo de config (FR-009)" do
+  it "a CLI flag takes precedence over the config file value (FR-009)" do
     path = File.join(dir, ".mutaterb.yml")
     File.write(path, "strictness: low\n")
     config = described_class.load_file(path)
@@ -61,7 +61,7 @@ RSpec.describe MutateRB::Config do
     expect(merged.strictness).to eq(:high)
   end
 
-  it "rechaza target_dir inexistente" do
+  it "rejects nonexistent target_dir" do
     expect { described_class.new(target_dir: "/no/existe/seguro") }.to raise_error(MutateRB::ConfigError, /target_dir/)
   end
 end
