@@ -1,8 +1,8 @@
 # MutateRB
 
 A mutation testing tool for Ruby and Ruby on Rails projects: it modifies code covered
-by your RSpec tests and checks whether the test suite catches the change. If a mutated
-test does not fail, that test is identified as weak.
+by your test suite and checks whether it catches the change. If a mutated test does not
+fail, that test is identified as weak. Supports both RSpec and Minitest.
 
 ## Installation
 
@@ -25,9 +25,11 @@ mutaterb
 ```
 
 Without flags, it automatically detects whether the project is pure Ruby or Rails,
-locates specs in `spec/`, applies mutations to covered code, and displays a summary:
-how many mutations were "killed" (caught by a test) and how many "survived" (no test
-caught them — weak tests), with file, line, and related test(s) for each survivor.
+which test framework it uses (RSpec if there's a `spec/` folder, Minitest if there's a
+`test/` folder — RSpec wins if both are present), applies mutations to covered code,
+and displays a summary: how many mutations were "killed" (caught by a test) and how
+many "survived" (no test caught them — weak tests), with file, line, and related
+test(s) for each survivor.
 
 ### Main flags
 
@@ -37,6 +39,7 @@ caught them — weak tests), with file, line, and related test(s) for each survi
 | `--include PATHS` | Restrict analysis to these paths (comma-separated) |
 | `--exclude PATHS` | Exclude these paths (comma-separated) |
 | `--strictness LEVEL` | `low`, `default`, or `high` |
+| `--framework FRAMEWORK` | `auto`, `rspec`, or `minitest` — forces the test framework instead of auto-detecting it |
 | `--mutation-types TYPES` | Mutation types to apply, comma-separated |
 | `--exit-zero` | Do not fail (exit 0) even if "survived" mutations exist |
 | `--json-output PATH` | Export the results summary to a JSON file |
