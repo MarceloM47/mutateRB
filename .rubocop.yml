@@ -4,6 +4,7 @@ AllCops:
   SuggestExtensions: false
 
 Metrics/BlockLength:
+  Max: 30
   Exclude:
     - "spec/**/*.rb"
     - "mutaterb.gemspec"

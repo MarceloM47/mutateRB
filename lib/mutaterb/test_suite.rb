@@ -4,23 +4,25 @@ module MutateRB
   # The collection of tests detected for the target project (data-model.md).
   class TestSuite
     VALID_PROJECT_TYPES = %i[ruby rails].freeze
+    VALID_FRAMEWORKS = %i[rspec minitest].freeze
 
     attr_reader :framework, :project_type, :test_cases
 
-    def initialize(project_type:, test_cases: [])
+    def initialize(project_type:, framework: :rspec, test_cases: [])
       unless VALID_PROJECT_TYPES.include?(project_type)
         raise ArgumentError,
               "invalid project_type #{project_type.inspect}"
       end
+      raise ArgumentError, "invalid framework #{framework.inspect}" unless VALID_FRAMEWORKS.include?(framework)
 
-      @framework = :rspec
+      @framework = framework
       @project_type = project_type
       @test_cases = Array(test_cases)
     end
 
     # Builds a TestSuite from the raw example hashes returned by
     # TestRunner#run_baseline (FR-012's baseline_status comes from here).
-    def self.from_baseline(project_type:, baseline_examples:)
+    def self.from_baseline(project_type:, framework:, baseline_examples:)
       test_cases = baseline_examples.map do |example|
         TestCase.new(
           id: example.fetch(:id),
@@ -30,7 +32,7 @@ module MutateRB
           baseline_duration_seconds: example.fetch(:duration)
         )
       end
-      new(project_type: project_type, test_cases: test_cases)
+      new(project_type: project_type, framework: framework, test_cases: test_cases)
     end
 
     def find(id)

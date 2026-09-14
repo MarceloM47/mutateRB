@@ -8,14 +8,15 @@ module MutateRB
   class Config
     ALL_MUTATION_TYPES = %i[conditional_boundary boolean_literal nil_literal arithmetic_comparison].freeze
     VALID_STRICTNESS = %i[low default high].freeze
+    VALID_TEST_FRAMEWORKS = %i[auto rspec minitest].freeze
     DEFAULT_FILE_NAME = ".mutaterb.yml"
 
     attr_accessor :target_dir, :include_paths, :exclude_paths, :strictness,
-                  :mutation_types, :exit_on_survivors, :json_output_path
+                  :mutation_types, :exit_on_survivors, :json_output_path, :test_framework
 
     def initialize(target_dir: ".", include_paths: [], exclude_paths: [],
                    strictness: :default, mutation_types: ALL_MUTATION_TYPES.dup,
-                   exit_on_survivors: true, json_output_path: nil)
+                   exit_on_survivors: true, json_output_path: nil, test_framework: :auto)
       @target_dir = target_dir
       @include_paths = include_paths
       @exclude_paths = exclude_paths
@@ -23,6 +24,7 @@ module MutateRB
       @mutation_types = mutation_types
       @exit_on_survivors = exit_on_survivors
       @json_output_path = json_output_path
+      @test_framework = test_framework
       validate!
     end
 
@@ -46,7 +48,7 @@ module MutateRB
 
     def self.attributes_from_yaml(raw)
       known_keys = %w[target_dir include_paths exclude_paths strictness mutation_types
-                      exit_on_survivors json_output_path]
+                      exit_on_survivors json_output_path test_framework]
       raw.each_key do |key|
         warn "mutaterb: ignoring unknown config key #{key.inspect}" unless known_keys.include?(key)
       end
@@ -64,7 +66,8 @@ module MutateRB
                           ALL_MUTATION_TYPES.dup
                         end,
         exit_on_survivors: raw.fetch("exit_on_survivors", true),
-        json_output_path: raw["json_output_path"]
+        json_output_path: raw["json_output_path"],
+        test_framework: raw.key?("test_framework") ? symbolize(raw["test_framework"], "test_framework") : :auto
       }
     end
     private_class_method :attributes_from_yaml
@@ -94,15 +97,27 @@ module MutateRB
       raise ConfigError, "target_dir #{target_dir.inspect} does not exist" unless Dir.exist?(target_dir)
       raise ConfigError, "include_paths must be an Array" unless include_paths.is_a?(Array)
       raise ConfigError, "exclude_paths must be an Array" unless exclude_paths.is_a?(Array)
-      unless VALID_STRICTNESS.include?(strictness)
-        raise ConfigError, "strictness must be one of #{VALID_STRICTNESS.join(', ')}, got #{strictness.inspect}"
-      end
+
+      validate_enum!(:strictness, strictness, VALID_STRICTNESS)
+      validate_enum!(:test_framework, test_framework, VALID_TEST_FRAMEWORKS)
       raise ConfigError, "mutation_types must be an Array" unless mutation_types.is_a?(Array)
 
       unknown = mutation_types - ALL_MUTATION_TYPES
       raise ConfigError, "unknown mutation_types: #{unknown.join(', ')}" unless unknown.empty?
       raise ConfigError, "exit_on_survivors must be true or false" unless [true, false].include?(exit_on_survivors)
 
+      validate_json_output_path!
+    end
+
+    private
+
+    def validate_enum!(field, value, allowed)
+      return if allowed.include?(value)
+
+      raise ConfigError, "#{field} must be one of #{allowed.join(', ')}, got #{value.inspect}"
+    end
+
+    def validate_json_output_path!
       return unless json_output_path
 
       parent = File.dirname(File.expand_path(json_output_path))
