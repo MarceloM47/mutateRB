@@ -17,6 +17,11 @@ archivo original, y repetir para cada mutante generado. Config y flags se combin
 objeto `Config` (flags ganan sobre YAML), y el resultado se imprime en consola y,
 opcionalmente, se exporta a JSON.
 
+Esta actualización del plan agrega la preparación para publicar la gema en RubyGems.org:
+metadata completa del gemspec, `README.md`, `LICENSE.txt`, y automatización de CI/release vía
+GitHub Actions con publicación por trusted publisher (OIDC) al pushear un tag `v*` (FR-016 a
+FR-019, SC-006).
+
 ## Technical Context
 
 **Language/Version**: Ruby 3.x (mínimo 3.0, sin dependencia de features de una minor específica)
@@ -31,7 +36,8 @@ gemspec) para testear y lintear MutateRB en sí mismo.
 **Storage**: N/A — no hay persistencia entre corridas (ver Non-Goals del spec: sin historial).
 
 **Testing**: RSpec (para el propio código de MutateRB) + Rubocop (estilo, Principio IV de la
-constitución).
+constitución). Se agrega `rake` como dependencia de desarrollo para exponer `rake spec`/`rake
+rubocop` como tareas estándar de gema (usadas también por CI, FR-018).
 
 **Target Platform**: CLI multiplataforma sobre cualquier entorno con Ruby 3 (Linux/macOS
 primero; sin dependencias nativas que rompan Windows, pero no se testea explícitamente en el
@@ -54,6 +60,12 @@ SC-005) → cada mutante se ejecuta en su propio `begin/rescue` aislado.
 garantiza tiempos de corrida acotados en proyectos grandes — se revisita si aparece como
 bloqueante real durante la implementación.
 
+**Release/CI**: GitHub Actions (`ci.yml`: matriz de versiones Ruby ≥ 3.0 corriendo `rake spec`
++ `rake rubocop` en cada push/PR; `release.yml`: dispara con tags `v*`, usa
+`rubygems/release-gem` con OIDC — sin `RUBYGEMS_API_KEY` almacenada como secret) (FR-018,
+FR-019). Requiere que el mantenedor configure "trusted publisher" en RubyGems.org apuntando al
+repo — un paso manual fuera del alcance de este repo, documentado en el quickstart.
+
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
@@ -66,6 +78,7 @@ bloqueante real durante la implementación.
 | IV. Estructura y Estilo | ¿Estructura plana de gema, sin Clean Architecture? ¿POO + DRY? ¿Rubocop? | PASS — ver "Project Structure" abajo: una sola carpeta `lib/mutaterb/` con clases planas, sin capas. Rubocop incluido como dependencia de desarrollo. |
 | V. Manejo de Errores y Validaciones | ¿Cada componente contempla `begin/rescue` y validación de tipos/retornos? | PASS (a nivel de diseño) — cada entidad en data-model.md declara sus validaciones (FR-011); se exige en `/speckit-implement` que cada método público valide entradas y capture excepciones, no delegable a nivel de plan. |
 | Comportamiento del Agente de IA | ¿Este plan se limita a lo documentado en spec.md? | PASS — ninguna funcionalidad planeada excede las User Stories, FRs o Non-Goals del spec. |
+| II. Stack Tecnológico (release) | ¿Los workflows de CI/release introducen otro lenguaje de ejecución? | PASS — GitHub Actions YAML es configuración del runner, no lógica de la herramienta; el propio pipeline solo invoca `bundle`/`rake`/`gem`, todo Ruby. |
 
 Sin violaciones detectadas. No aplica la sección "Complexity Tracking".
 
@@ -73,6 +86,10 @@ Sin violaciones detectadas. No aplica la sección "Complexity Tracking".
 contrato introduce una capa, patrón o dependencia fuera de lo aprobado arriba (siguen siendo
 clases planas en `lib/mutaterb/`, stdlib + RSpec/Rubocop como únicas dependencias). Gate sigue
 en PASS sin cambios.
+
+**Re-chequeo tras agregar release readiness (FR-016–FR-019)**: los archivos nuevos (README,
+LICENSE, Rakefile, workflows) son metadata/config de empaquetado, no código de la herramienta;
+no agregan entidades, capas ni dependencias de runtime. Gate sigue en PASS.
 
 ## Project Structure
 
@@ -96,7 +113,15 @@ specs/001-mutation-testing-mvp/
 ```text
 mutaterb.gemspec
 Gemfile
+Rakefile                        # rake spec / rake rubocop / task default (FR-018)
 .rubocop.yml
+README.md                       # instalación + uso básico (FR-016)
+LICENSE.txt                     # MIT, autor MarceloM47 (FR-017)
+
+.github/
+└── workflows/
+    ├── ci.yml                  # rspec + rubocop en push/PR (FR-018)
+    └── release.yml             # publica a RubyGems al pushear tag v* (FR-019)
 
 exe/
 └── mutaterb                     # entry point ejecutable de la gem

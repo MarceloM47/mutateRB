@@ -110,3 +110,49 @@ corrió bien pero encontró tests débiles", permitiendo diferenciarlos en un pi
 
 **Rationale**: Reutilizar la misma estructura de datos para ambas salidas evita mantener dos
 fuentes de verdad del resultado de una corrida.
+
+## 9. Autenticación para publicar en RubyGems (FR-019)
+
+**Decision**: Usar el mecanismo de "trusted publisher" de RubyGems.org (OIDC) vía la GitHub
+Action `rubygems/release-gem`, disparado por un push de tag `v*`, en vez de una
+`RUBYGEMS_API_KEY` guardada como secret del repo.
+
+**Rationale**: Es el mecanismo recomendado actualmente por RubyGems: no hay una API key de
+larga vida que pueda filtrarse; el permiso de publicar se ata a la identidad del workflow de
+GitHub Actions, verificable criptográficamente en cada corrida.
+
+**Alternatives considered**: API key clásica en un secret de GitHub — funciona pero es una
+credencial estática de alto privilegio (publica *cualquier* versión) que hay que rotar
+manualmente; se descarta a favor de OIDC dado que ya existe un repo de GitHub real para
+configurar el trusted publisher.
+
+## 10. Automatización de tareas de desarrollo (FR-018)
+
+**Decision**: Agregar `rake` como dependencia de desarrollo con un `Rakefile` mínimo:
+`RSpec::Core::RakeTask.new(:spec)` y `task default: :spec`; Rubocop se invoca por separado
+(`bundle exec rubocop`) tanto localmente como en CI.
+
+**Rationale**: `rake spec` es la convención estándar de una gema Ruby (la genera
+`bundle gem` por defecto); mantiene el mismo comando en CI y en desarrollo local sin duplicar
+configuración.
+
+## 11. Contenido mínimo del README (FR-016)
+
+**Decision**: Secciones: título + descripción de una línea, instalación (`gem install
+mutaterb`), uso básico (comando por defecto y los flags de `contracts/cli.md`), y licencia.
+Sin capturas de pantalla ni badges dinámicos en el MVP.
+
+**Rationale**: Cubre exactamente lo que SC-006 pide verificar (instalar y encontrar cómo
+usarlo sin salir de la página del gem) sin comprometerse a mantenimiento adicional
+(badges de CI, por ejemplo, requieren que el repo esté público y el primer build ya haya
+corrido).
+
+## 12. Alcance de LICENSE.txt (FR-017)
+
+**Decision**: Texto estándar de la licencia MIT (el mismo `spec.license = "MIT"` ya declarado
+en el gemspec), con "MarceloM47" como titular del copyright y el año de la primera
+publicación.
+
+**Rationale**: MIT es la licencia ya declarada en `mutaterb.gemspec`; el archivo `LICENSE.txt`
+solo materializa por escrito lo que esa clave de metadata ya promete, requisito de RubyGems
+para que el badge de licencia en la página del gem no quede vacío.

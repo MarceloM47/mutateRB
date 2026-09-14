@@ -72,8 +72,26 @@ mutaterb --exit-zero; echo "exit code: $?"  # siempre 0 salvo error operativo
 3. Repetir la corrida e interrumpirla a mitad de camino con `Ctrl+C` → el archivo fuente
    también debe quedar sin cambios (`git diff` vacío).
 
+## Escenario 5 — Lista para publicar en RubyGems (FR-016 a FR-019, SC-006)
+
+```bash
+gem build mutaterb.gemspec        # debe generar mutaterb-X.Y.Z.gem sin warnings de metadata
+gem install ./mutaterb-*.gem      # instalación local, simula `gem install mutaterb`
+mutaterb --help                   # confirma que el binario instalado funciona
+rake spec                         # mismo comando que corre CI
+bundle exec rubocop
+```
+
+**Resultado esperado**: `gem build` no advierte sobre `homepage`/`license`/autor faltantes;
+`README.md` y `LICENSE.txt` existen en la raíz; `rake spec` y `rubocop` terminan igual que en
+local que en CI. Para probar el workflow de release en sí (`.github/workflows/release.yml`) no
+hace falta pushear un tag real: alcanza con revisar que el YAML dispare en `tags: ["v*"]` y use
+`rubygems/release-gem`; la publicación real requiere que el mantenedor haya configurado
+"trusted publisher" en RubyGems.org apuntando a este repo (paso manual, fuera del alcance del
+código).
+
 ## Criterio de aceptación de la iteración
 
-El MVP se considera validado cuando los 4 escenarios anteriores se comportan como se describe,
+El MVP se considera validado cuando los 5 escenarios anteriores se comportan como se describe,
 sin intervención manual para restaurar archivos y sin que ningún fallo puntual tumbe el proceso
 completo.
