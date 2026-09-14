@@ -27,6 +27,16 @@ nivel de estricticidad, carpetas a incluir/excluir y tipos de mutación a aplica
 - Q: ¿El export de resultados a un archivo de texto/JSON plano es un requisito real del MVP,
   o solo una posibilidad futura? → A: Sí es un requisito del MVP: la CLI debe poder exportar
   los resultados a un archivo JSON plano además de mostrarlos en consola, vía flag.
+- Q: ¿Se debe crear un `README.md` para publicar en RubyGems, o se publica sin él? → A: Sí,
+  crear un `README.md` mínimo (instalación, uso, flags principales) — es un entregable
+  necesario para la publicación, no una documentación superflua.
+- Q: ¿Qué nombre y contacto va en la metadata pública de la gema (autor del gemspec y
+  titular del copyright en LICENSE)? → A: Autor "MarceloM47", email
+  marcelo.esteche@proton.me.
+- Q: ¿El repo debe tener un workflow de GitHub Actions que publique automáticamente a
+  RubyGems al pushear un tag `v*`, o solo documentar el proceso manual? → A: Sí, agregar CI
+  (tests + rubocop en cada push/PR) y un workflow de release que publica a RubyGems al
+  pushear un tag `v*` (vía trusted publisher/OIDC, sin API key en secrets).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -176,6 +186,17 @@ verificando que la segunda corrida solo mutó lo indicado.
   como timeout al ejecutar ese test contra una mutación.
 - **FR-015**: El sistema DEBE poder exportar el resumen de resultados de una corrida a un
   archivo JSON plano (además de mostrarlo en consola), activable vía flag de CLI.
+- **FR-016**: El repositorio DEBE incluir un `README.md` con instrucciones de instalación
+  (`gem install`) y uso básico de la CLI (comando por defecto y flags principales), como
+  entregable necesario para publicar la gema en RubyGems.
+- **FR-017**: El gemspec DEBE declarar autor ("MarceloM47") y email
+  (marcelo.esteche@proton.me), y el repositorio DEBE incluir un archivo `LICENSE.txt` (MIT)
+  con ese mismo nombre como titular del copyright.
+- **FR-018**: El repositorio DEBE tener un workflow de CI (GitHub Actions) que corra la
+  suite de RSpec y Rubocop en cada push y pull request.
+- **FR-019**: El repositorio DEBE tener un workflow de release (GitHub Actions) que publique
+  la gema a RubyGems automáticamente al pushear un tag `v*`, usando autenticación por
+  trusted publisher (OIDC) en vez de una API key almacenada como secret.
 
 ### Key Entities
 
@@ -208,6 +229,8 @@ verificando que la segunda corrida solo mutó lo indicado.
 - **SC-005**: Ningún error individual (mutación inválida, test colgado, fallo de ejecución)
   detiene la corrida completa; el reporte final siempre se genera con los resultados
   disponibles hasta ese punto.
+- **SC-006**: Un desarrollador externo puede instalar la gema con `gem install mutaterb` y
+  encontrar instrucciones de uso sin salir de la página del gem en RubyGems.org.
 
 ## Out of Scope (Non-Goals) para esta iteración
 
@@ -244,3 +267,8 @@ verificando que la segunda corrida solo mutó lo indicado.
 - "Nivel de estricticidad" controla, como mínimo, qué tipos de mutación se aplican y/o qué tan
   exigente es el criterio para considerar un test como fuerte; el detalle fino de los niveles
   se define en el plan de implementación.
+- El nombre de gem "mutaterb" está disponible en RubyGems.org (verificado, no publicado por
+  terceros).
+- El repositorio ya tiene un remoto real de GitHub configurado
+  (`github.com/MarceloM47/mutateRB`); ese es el `homepage`/`source_code_uri` a usar en el
+  gemspec y en el workflow de release (FR-017, FR-019).
