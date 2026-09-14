@@ -302,3 +302,20 @@ US1. Orden sugerido:
 
 Cada checkpoint de fase es un punto seguro para hacer una demo o cortar una versión interna de
 la gema antes de seguir con la siguiente.
+
+---
+
+## Phase 7: Convergence
+
+- [X] T041 Sanitizar las variables de entorno `BUNDLE_*`/`RUBYOPT` heredadas antes de
+      spawnear `bundle exec rspec` en `lib/mutaterb/test_runner.rb#spawn_rspec`, para que el
+      subproceso use el `Gemfile`/RSpec del proyecto objetivo y no el de MutateRB, incluso
+      cuando `mutaterb` se invoque vía `bundle exec` (research.md #2) (contradicts)
+- [X] T042 Envolver la ejecución completa (`ProjectDetector`, corrida base, `Mutator`) en
+      `lib/mutaterb/cli.rb#execute` con un rescate genérico de `StandardError` que reporte el
+      fallo por stderr y devuelva `CLI::EXIT_OPERATIONAL_ERROR` (2), para que ningún error no
+      previsto salga sin capturar (Constitution Principio V, contracts/cli.md, SC-005)
+      (partial)
+- [X] T043 Implementar el efecto real de `strictness` (`low`/`default`/`high`) sobre
+      `mutation_types` y/o el criterio de clasificación en `lib/mutaterb/mutator.rb`, para
+      satisfacer el Acceptance Scenario 2 de User Story 3 (FR-008, US3/AC2) (partial)
