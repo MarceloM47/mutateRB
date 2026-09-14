@@ -15,7 +15,8 @@ module MutateRB
     def initialize(config:, test_suite:, test_runner: nil)
       @config = config
       @test_suite = test_suite
-      @test_runner = test_runner || TestRunner.new(config: config, project_type: test_suite.project_type)
+      @test_runner = test_runner || TestRunner.new(config: config, project_type: test_suite.project_type,
+                                                   framework: test_suite.framework)
     end
 
     # Yields each finished Mutant, one at a time.
@@ -31,7 +32,7 @@ module MutateRB
 
     def source_files
       Dir.glob(File.join(config.target_dir, "**", "*.rb"))
-         .reject { |f| f.include?("/spec/") || f.start_with?(File.join(config.target_dir, "spec")) }
+         .reject { |f| f.include?("/spec/") || f.include?("/test/") }
          .select { |f| in_scope?(f) }
     end
 
@@ -127,22 +128,26 @@ module MutateRB
       end
     end
 
-    # Convention-based coverage mapping: lib/foo/bar.rb -> spec/foo/bar_spec.rb.
+    # Convention-based coverage mapping: lib/foo/bar.rb -> spec/foo/bar_spec.rb
+    # (or test/foo/bar_test.rb for Minitest, feature 004 research.md #5).
     # ponytail: no real coverage tracking yet; falls back to the whole suite
-    # when no matching spec file exists. Upgrade path: integrate SimpleCov
+    # when no matching test file exists. Upgrade path: integrate SimpleCov
     # coverage data if this heuristic proves too coarse for real projects.
     def related_tests_for(source_file)
-      mapped = mapped_spec_file(source_file)
+      mapped = mapped_test_file(source_file)
       matches = test_suite.test_cases.select { |t| t.file_path == mapped }
       matches = test_suite.test_cases.dup if matches.empty?
       matches.reject(&:baseline_broken?)
     end
 
-    def mapped_spec_file(source_file)
+    def mapped_test_file(source_file)
       relative = source_file.sub(%r{\A#{Regexp.escape(config.target_dir)}/?}, "")
       relative = relative.sub(%r{\A(lib|app)/}, "")
-      spec_relative = relative.sub(/\.rb\z/, "_spec.rb")
-      File.join(config.target_dir, "spec", spec_relative)
+      if test_suite.framework == :minitest
+        File.join(config.target_dir, "test", relative.sub(/\.rb\z/, "_test.rb"))
+      else
+        File.join(config.target_dir, "spec", relative.sub(/\.rb\z/, "_spec.rb"))
+      end
     end
   end
 end
