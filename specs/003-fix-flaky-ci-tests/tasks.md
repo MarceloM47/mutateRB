@@ -43,7 +43,7 @@ corrida de CI en las 4 versiones de la matriz (Escenario 2 y 3 de quickstart.md)
 - [X] T002 [US1] Correr `bundle exec rake spec` localmente y confirmar 35/35 en verde,
       incluyendo los dos ejemplos que fallaban en CI (FR-002, Escenario 2 de quickstart.md) —
       depende de T001
-- [ ] T003 [US1] Pushear el fix y confirmar que el job `test` (matriz `3.0`–`3.3`) y el job
+- [X] T003 [US1] Pushear el fix y confirmar que el job `test` (matriz `3.0`–`3.3`) y el job
       `lint` de `ci.yml` terminan en verde, sin haber tocado `ci.yml` (FR-003, SC-001,
       Escenario 3 de quickstart.md) — depende de T002
 
