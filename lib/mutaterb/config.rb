@@ -12,11 +12,13 @@ module MutateRB
     DEFAULT_FILE_NAME = ".mutaterb.yml"
 
     attr_accessor :target_dir, :include_paths, :exclude_paths, :strictness,
-                  :mutation_types, :exit_on_survivors, :json_output_path, :test_framework
+                  :mutation_types, :exit_on_survivors, :json_output_path, :test_framework,
+                  :verbose
 
     def initialize(target_dir: ".", include_paths: [], exclude_paths: [],
                    strictness: :default, mutation_types: ALL_MUTATION_TYPES.dup,
-                   exit_on_survivors: true, json_output_path: nil, test_framework: :auto)
+                   exit_on_survivors: true, json_output_path: nil, test_framework: :auto,
+                   verbose: false)
       @target_dir = target_dir
       @include_paths = include_paths
       @exclude_paths = exclude_paths
@@ -25,6 +27,7 @@ module MutateRB
       @exit_on_survivors = exit_on_survivors
       @json_output_path = json_output_path
       @test_framework = test_framework
+      @verbose = verbose
       validate!
     end
 
@@ -48,7 +51,7 @@ module MutateRB
 
     def self.attributes_from_yaml(raw)
       known_keys = %w[target_dir include_paths exclude_paths strictness mutation_types
-                      exit_on_survivors json_output_path test_framework]
+                      exit_on_survivors json_output_path test_framework verbose]
       raw.each_key do |key|
         warn "mutaterb: ignoring unknown config key #{key.inspect}" unless known_keys.include?(key)
       end
@@ -67,7 +70,8 @@ module MutateRB
                         end,
         exit_on_survivors: raw.fetch("exit_on_survivors", true),
         json_output_path: raw["json_output_path"],
-        test_framework: raw.key?("test_framework") ? symbolize(raw["test_framework"], "test_framework") : :auto
+        test_framework: raw.key?("test_framework") ? symbolize(raw["test_framework"], "test_framework") : :auto,
+        verbose: raw.fetch("verbose", false)
       }
     end
     private_class_method :attributes_from_yaml
@@ -105,6 +109,7 @@ module MutateRB
       unknown = mutation_types - ALL_MUTATION_TYPES
       raise ConfigError, "unknown mutation_types: #{unknown.join(', ')}" unless unknown.empty?
       raise ConfigError, "exit_on_survivors must be true or false" unless [true, false].include?(exit_on_survivors)
+      raise ConfigError, "verbose must be true or false" unless [true, false].include?(verbose)
 
       validate_json_output_path!
     end

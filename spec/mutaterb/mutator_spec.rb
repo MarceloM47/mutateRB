@@ -87,4 +87,18 @@ RSpec.describe MutateRB::Mutator do
     mutator = described_class.new(config: high_config, test_suite: test_suite, test_runner: fake_runner)
     mutator.each_mutant { |mutant| expect(mutant.status).to eq(:survived) }
   end
+
+  it "total_mutants matches the number of mutants each_mutant actually yields, memoized" do
+    fake_runner = instance_double(MutateRB::TestRunner)
+    allow(fake_runner).to receive(:run_for_mutant).and_return(status: :completed, examples: [])
+
+    mutator = described_class.new(config: config, test_suite: test_suite, test_runner: fake_runner)
+    total_before = mutator.total_mutants
+
+    yielded = 0
+    mutator.each_mutant { |_mutant| yielded += 1 }
+
+    expect(total_before).to eq(yielded)
+    expect(mutator.total_mutants).to eq(total_before)
+  end
 end

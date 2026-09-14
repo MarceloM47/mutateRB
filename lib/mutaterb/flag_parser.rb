@@ -48,6 +48,7 @@ module MutateRB
         opts.on("--config PATH", "Use a config file other than .mutaterb.yml") do |v|
           flags[:config_path] = v
         end
+        opts.on("--verbose", "Print one line per mutant as it runs") { flags[:verbose] = true }
         opts.on("-h", "--help", "Show this help") do
           puts opts
           exit 0

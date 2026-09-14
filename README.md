@@ -31,6 +31,11 @@ and displays a summary: how many mutations were "killed" (caught by a test) and 
 many "survived" (no test caught them — weak tests), with file, line, and related
 test(s) for each survivor.
 
+While it runs, it prints the baseline status and a live counter of mutants processed
+so far out of the total, so a long run never looks stuck. Pass `--verbose` to replace
+that counter with one line per mutant (file, line, mutation type, and result) as it is
+evaluated.
+
 ### Main flags
 
 | Flag | Description |
@@ -42,6 +47,7 @@ test(s) for each survivor.
 | `--framework FRAMEWORK` | `auto`, `rspec`, or `minitest` — forces the test framework instead of auto-detecting it |
 | `--mutation-types TYPES` | Mutation types to apply, comma-separated |
 | `--exit-zero` | Do not fail (exit 0) even if "survived" mutations exist |
+| `--verbose` | Print one line per mutant as it runs, instead of the default counter |
 | `--json-output PATH` | Export the results summary to a JSON file |
 | `--config PATH` | Use a config file other than `.mutaterb.yml` |
 

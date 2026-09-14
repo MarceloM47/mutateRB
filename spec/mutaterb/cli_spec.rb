@@ -18,6 +18,12 @@ RSpec.describe MutateRB::FlagParser do
     expect(flags[:exit_on_survivors]).to be false
   end
 
+  it "--verbose sets verbose to true" do
+    flags = described_class.parse(["--verbose"])
+
+    expect(flags[:verbose]).to be true
+  end
+
   it "does not include a key if the flag was not passed (so the config file wins)" do
     flags = described_class.parse([])
 

@@ -87,4 +87,33 @@ RSpec.describe MutateRB::Config do
 
     expect(merged.test_framework).to eq(:minitest)
   end
+
+  it "defaults verbose to false" do
+    config = described_class.load_file(File.join(dir, "nope.yml"))
+
+    expect(config.verbose).to be false
+  end
+
+  it "reads verbose from the config file" do
+    path = File.join(dir, ".mutaterb.yml")
+    File.write(path, "verbose: true\n")
+
+    config = described_class.load_file(path)
+
+    expect(config.verbose).to be true
+  end
+
+  it "rejects a non-boolean verbose" do
+    expect { described_class.new(target_dir: dir, verbose: "yes") }.to raise_error(MutateRB::ConfigError, /verbose/)
+  end
+
+  it "a --verbose flag takes precedence over the config file value (FR-010)" do
+    path = File.join(dir, ".mutaterb.yml")
+    File.write(path, "verbose: false\n")
+    config = described_class.load_file(path)
+
+    merged = config.merge_flags(verbose: true)
+
+    expect(merged.verbose).to be true
+  end
 end

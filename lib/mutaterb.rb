@@ -18,6 +18,7 @@ require_relative "mutaterb/mutation_operators/boolean_literal_operator"
 require_relative "mutaterb/mutation_operators/nil_literal_operator"
 require_relative "mutaterb/mutation_operators/arithmetic_comparison_operator"
 require_relative "mutaterb/mutator"
+require_relative "mutaterb/progress_reporter"
 require_relative "mutaterb/reporter"
 require_relative "mutaterb/cli"
 

@@ -75,7 +75,8 @@ module MutateRB
         exclude_paths: c.exclude_paths,
         strictness: c.strictness.to_s,
         mutation_types: c.mutation_types.map(&:to_s),
-        exit_on_survivors: c.exit_on_survivors
+        exit_on_survivors: c.exit_on_survivors,
+        verbose: c.verbose
       }
     end
 

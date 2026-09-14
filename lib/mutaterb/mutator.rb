@@ -19,16 +19,26 @@ module MutateRB
                                                    framework: test_suite.framework)
     end
 
+    # Total number of mutants this run will process, known upfront without running any
+    # test (FR-002, FR-008) — memoized alongside `candidates` (research.md #3).
+    def total_mutants
+      candidates.size
+    end
+
     # Yields each finished Mutant, one at a time.
     def each_mutant
-      source_files.each do |file|
-        candidates_for(file).each { |mutant| yield run_one(mutant) }
-      end
+      candidates.each { |mutant| yield run_one(mutant) }
     end
 
     private
 
     attr_reader :config, :test_suite, :test_runner
+
+    # Memoized: discovering candidates is pure parsing (no test execution), so computing
+    # it once upfront lets `total_mutants` be known before `each_mutant` starts (FR-002).
+    def candidates
+      @candidates ||= source_files.flat_map { |file| candidates_for(file) }
+    end
 
     def source_files
       Dir.glob(File.join(config.target_dir, "**", "*.rb"))
