@@ -11,12 +11,23 @@ RSpec.describe MutateRB::TestAdapters::MinitestAdapter do
                             "bundle exec ruby -Itest -Ilib test/foo_test.rb -v")
     end
 
-    it "joins multiple files with && so TestRunner still spawns one process" do
+    it "joins multiple files with ; so TestRunner still spawns one process" do
       command = described_class.command_for(["test/a_test.rb", "test/b_test.rb"], project_type: :ruby)
 
-      expect(command).to include(" && ")
+      expect(command).to include(" ; ")
       expect(command).to include("test/a_test.rb")
       expect(command).to include("test/b_test.rb")
+    end
+
+    # Regression: a failing/erroring test in one file makes `ruby`/`bin/rails test` exit
+    # non-zero — the normal case for a real project's baseline. Joining with `&&` used to let
+    # that non-zero exit short-circuit the rest of the shell command, silently dropping every
+    # file after the first failure from the baseline (never even echoing its FILE_MARKER).
+    it "still runs every file's command even when an earlier one exits non-zero" do
+      command = described_class.command_for(["test/a_test.rb", "test/b_test.rb"], project_type: :ruby)
+      raw = `#{command.gsub("bundle exec ruby -Itest -Ilib test/a_test.rb -v", "false")} 2>/dev/null`
+
+      expect(raw).to include("@@MUTATERB_FILE@@test/b_test.rb")
     end
 
     it "uses bin/rails test for a Rails project" do

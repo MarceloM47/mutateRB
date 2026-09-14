@@ -17,9 +17,14 @@ module MutateRB
       LINE_PATTERN = /^(\S+)\s*=\s*([\d.]+)\s*s\s*=\s*([.FES])/
       FILE_MARKER = "@@MUTATERB_FILE@@"
 
+      # Files are joined with `;`, not `&&`: `bin/rails test`/`ruby` exits non-zero whenever a
+      # test fails or errors, which is the normal case for a real project's suite — `&&` would
+      # silently stop the whole chain at the first failing file, dropping every file after it
+      # from the baseline. Nothing here reads the shell's exit status (TestRunner classifies
+      # purely from parsed output), so running every file regardless is safe.
       def self.command_for(files, project_type:)
         files.map { |file| "echo #{FILE_MARKER}#{Shellwords.escape(file)} && #{run_one(file, project_type)}" }
-             .join(" && ")
+             .join(" ; ")
       end
 
       def self.run_one(file, project_type)
