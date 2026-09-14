@@ -39,10 +39,11 @@ module MutateRB
       Signal.trap("INT") { interrupted = true }
 
       detection = ProjectDetector.new(config).detect
-      if detection.spec_files.empty?
+      if detection.test_files.empty?
         warn "mutaterb: no tests found in #{config.target_dir}"
         return EXIT_OPERATIONAL_ERROR
       end
+      warn_ambiguous_frameworks(detection)
 
       test_suite = build_test_suite(config, detection)
       run = MutationRun.new(config: config, test_suite: test_suite)
@@ -57,10 +58,21 @@ module MutateRB
       run.exit_code
     end
 
+    # FR-002/SC-003: when both frameworks are present and none was forced
+    # explicitly, the choice must be visible, never silent.
+    def warn_ambiguous_frameworks(detection)
+      return unless detection.ambiguous_frameworks
+
+      warn "mutaterb: detected both RSpec and Minitest — using #{detection.test_framework} " \
+           "(force one explicitly with --framework)"
+    end
+
     def build_test_suite(config, detection)
-      test_runner = TestRunner.new(config: config, project_type: detection.project_type)
-      baseline_examples = test_runner.run_baseline(detection.spec_files)
-      TestSuite.from_baseline(project_type: detection.project_type, baseline_examples: baseline_examples)
+      test_runner = TestRunner.new(config: config, project_type: detection.project_type,
+                                   framework: detection.test_framework)
+      baseline_examples = test_runner.run_baseline(detection.test_files)
+      TestSuite.from_baseline(project_type: detection.project_type, framework: detection.test_framework,
+                              baseline_examples: baseline_examples)
     end
 
     def run_mutations(run, test_suite, config)

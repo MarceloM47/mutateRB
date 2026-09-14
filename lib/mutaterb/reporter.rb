@@ -70,6 +70,7 @@ module MutateRB
       c = run.config
       {
         target_dir: c.target_dir,
+        framework: run.test_suite.framework.to_s,
         include_paths: c.include_paths,
         exclude_paths: c.exclude_paths,
         strictness: c.strictness.to_s,

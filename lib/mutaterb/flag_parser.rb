@@ -35,6 +35,7 @@ module MutateRB
           flags[:exclude_paths] = v.split(",")
         end
         opts.on("--strictness LEVEL", "low|default|high") { |v| flags[:strictness] = v.to_sym }
+        opts.on("--framework FRAMEWORK", "auto|rspec|minitest") { |v| flags[:test_framework] = v.to_sym }
         opts.on("--mutation-types TYPES", "Mutation types to apply, comma-separated") do |v|
           flags[:mutation_types] = v.split(",").map(&:to_sym)
         end
